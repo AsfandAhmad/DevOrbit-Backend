@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../../Middleware/Auth');
-const Profile = require('../../models/Profiles'); // ✅ CORRECT file name
+const Profile = require('../../models/Profiles');
 const User = require('../../models/User');
 const Post = require('../../models/Posts');
 const { check, validationResult } = require('express-validator');
-const request = require('request');
+const axios = require('axios');
 const config = require('config');
 
 // @route   GET api/profile/me
@@ -77,7 +77,7 @@ router.post(
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const profiles = await Profile.find().populate('user', ['name', 'avatar']); // ✅ Fixed 'User' → 'user'
+    const profiles = await Profile.find().populate('user', ['name', 'avatar']);
     res.json(profiles);
   } catch (err) {
     console.error(err.message);
@@ -208,23 +208,28 @@ router.delete('/education/:edu_id', auth, async (req, res) => {
 // @route   GET api/profile/github/:username
 // @desc    Get GitHub repos
 // @access  Public
-router.get('/github/:username', (req, res) => {
+router.get('/github/:username', async (req, res) => {
   try {
-    const options = {
-      uri: `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc&client_id=${config.get('githubClientId')}&client_secret=${config.get('githubClientSecret')}`,
-      method: 'GET',
-      headers: { 'user-agent': 'node.js' }
-    };
+    const uri = `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc`;
+    const headers = { 'user-agent': 'node.js' };
 
-    request(options, (error, response, body) => {
-      if (error) console.error(error);
-      if (response.statusCode !== 200) {
-        return res.status(404).json({ msg: 'No Github profile found' });
-      }
-      res.json(JSON.parse(body));
-    });
+    // If you use githubClientId and githubClientSecret, add them as params
+    const githubClientId = config.get('githubClientId');
+    const githubClientSecret = config.get('githubClientSecret');
+
+    const params = githubClientId && githubClientSecret ? {
+      client_id: githubClientId,
+      client_secret: githubClientSecret
+    } : {};
+
+    const response = await axios.get(uri, { headers, params });
+
+    res.json(response.data);
   } catch (err) {
     console.error(err.message);
+    if (err.response && err.response.status === 404) {
+      return res.status(404).json({ msg: 'No Github profile found' });
+    }
     res.status(500).send('Server Error');
   }
 });

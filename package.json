@@ -22,8 +22,7 @@
         "gravatar": "^1.8.2",
         "jsonwebtoken": "^9.0.2",
         "mongoose": "^8.16.4",
-        "react-scripts": "^0.0.0",
-        "request": "^2.88.2"
+        "react-scripts": "^0.0.0"
     },
     "devDependencies": {
         "concurrently": "^9.2.0",
