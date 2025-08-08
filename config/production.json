@@ -1,0 +1,6 @@
+{
+    "mongoURI": "mongodb+srv://Asfand:Asfand10@cluster0.fqsgwpx.mongodb.net/",
+    "JWTSecret": "your_jwt_secret",
+    "githubClientId": "Ov23liC3lKmH1yFbCWDi",
+    "githubClientSecret": "ffcaedc95836942be1d404a8fb1a0282b25fb5dc"
+}
