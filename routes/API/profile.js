@@ -14,7 +14,7 @@ const config = require('config');
 router.get('/me', auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id }).populate('user', ['name', 'avatar']);
-    if (!profile) return res.status(400).json({ msg: 'There is no profile for this user' });
+    if (!profile) return res.status(404).json({ msg: 'There is no profile for this user' });
     res.json(profile);
   } catch (err) {
     console.error(err.message);
@@ -43,10 +43,15 @@ router.post(
 
     const profileFields = {
       user: req.user.id,
-      company, website, location, status, bio, githubusername,
-      skills: skills.split(',').map(skill => skill.trim()),
-      experience,
-      education,
+      company,
+      website,
+      location,
+      status,
+      bio,
+      githubusername,
+      skills: typeof skills === 'string' ? skills.split(',').map(skill => skill.trim()) : [],
+      experience: Array.isArray(experience) ? experience : [],
+      education: Array.isArray(education) ? education : [],
       social: { youtube, twitter, facebook, linkedin, instagram }
     };
 
@@ -91,11 +96,11 @@ router.get('/', async (req, res) => {
 router.get('/user/:user_id', async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.params.user_id }).populate('user', ['name', 'avatar']);
-    if (!profile) return res.status(400).json({ msg: 'Profile not found' });
+    if (!profile) return res.status(404).json({ msg: 'Profile not found' });
     res.json(profile);
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') return res.status(400).json({ msg: 'Profile not found' });
+    if (err.kind === 'ObjectId') return res.status(404).json({ msg: 'Profile not found' });
     res.status(500).send('Server Error');
   }
 });
@@ -138,6 +143,7 @@ router.put('/experience', [
     const profile = await Profile.findOne({ user: req.user.id });
     if (!profile) return res.status(404).json({ msg: 'Profile not found' });
 
+    profile.experience = profile.experience || [];
     profile.experience.unshift(newExp);
     await profile.save();
     res.json(profile);
@@ -153,6 +159,8 @@ router.put('/experience', [
 router.delete('/experience/:exp_id', auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id });
+    if (!profile) return res.status(404).json({ msg: 'Profile not found' });
+
     profile.experience = profile.experience.filter(exp => exp._id.toString() !== req.params.exp_id);
     await profile.save();
     res.json(profile);
@@ -181,6 +189,9 @@ router.put('/education', [
 
   try {
     const profile = await Profile.findOne({ user: req.user.id });
+    if (!profile) return res.status(404).json({ msg: 'Profile not found' });
+
+    profile.education = profile.education || [];
     profile.education.unshift(newEdu);
     await profile.save();
     res.json(profile);
@@ -196,6 +207,8 @@ router.put('/education', [
 router.delete('/education/:edu_id', auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id });
+    if (!profile) return res.status(404).json({ msg: 'Profile not found' });
+
     profile.education = profile.education.filter(edu => edu._id.toString() !== req.params.edu_id);
     await profile.save();
     res.json(profile);
@@ -211,9 +224,8 @@ router.delete('/education/:edu_id', auth, async (req, res) => {
 router.get('/github/:username', async (req, res) => {
   try {
     const uri = `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc`;
-    const headers = { 'user-agent': 'node.js' };
+    const headers = { 'User-Agent': 'node.js' };
 
-    // If you use githubClientId and githubClientSecret, add them as params
     const githubClientId = config.get('githubClientId');
     const githubClientSecret = config.get('githubClientSecret');
 
