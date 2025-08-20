@@ -1,9 +1,9 @@
 {
   "build": {
     "builder": "npm",
-    "buildCommand": "npm install && npm run build"
+    "buildCommand": "npm install"
   },
-  "start": "npm start",
+  "start": "node server.js",
   "deploy": {
     "restart": true
   }
