@@ -5,41 +5,37 @@ const path = require('path');
 
 const app = express();
 
-// Log Mongo URI to verify it's loaded properly
-console.log('Mongo URI:', process.env.MONGO_URI);
-
+// Connect to MongoDB
 if (!process.env.MONGO_URI) {
-    console.error('Error: MONGO_URI is not defined in your environment variables');
-    process.exit(1); // Stop the server if no DB connection string
+    console.error('Error: MONGO_URI is not defined in environment variables');
+    process.exit(1);
 }
-
-// Connect to the database
 connectDB(process.env.MONGO_URI);
 
 // Middleware
 app.use(express.json({ extended: false }));
 
-// Routes
+// API Routes
 app.use('/api/users', require('./routes/API/users'));
 app.use('/api/auth', require('./routes/API/auth'));
 app.use('/api/profile', require('./routes/API/profile'));
 app.use('/api/post', require('./routes/API/post'));
 
-// Serve static assets in production
+// Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static('client/build'));
+    const buildPath = path.join(__dirname, 'client', 'build');
+    app.use(express.static(buildPath));
     app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+        res.sendFile(path.join(buildPath, 'index.html'));
     });
 }
 
+// Start server
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// Handle unhandled promise rejections (optional but recommended)
-process.on('unhandledRejection', (err, promise) => {
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
     console.error(`Unhandled rejection: ${err.message}`);
-    // Close server & exit process if needed
     process.exit(1);
 });
