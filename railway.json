@@ -1,9 +1,10 @@
 {
-  "services": [
-    {
-      "name": "mern-backend",
-      "type": "web",
-      "start": "node server.js"
-    }
-  ]
+  "build": {
+    "builder": "npm",
+    "buildCommand": "npm install && npm run build"
+  },
+  "start": "npm start",
+  "deploy": {
+    "restart": true
+  }
 }
