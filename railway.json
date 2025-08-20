@@ -1,0 +1,9 @@
+{
+  "services": [
+    {
+      "name": "mern-backend",
+      "type": "web",
+      "start": "node server.js"
+    }
+  ]
+}
