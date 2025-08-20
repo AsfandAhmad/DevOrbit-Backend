@@ -1,10 +1,4 @@
 {
-  "build": {
-    "builder": "npm",
-    "buildCommand": "npm install"
-  },
-  "start": "node server.js",
-  "deploy": {
-    "restart": true
-  }
+  "build": "npm install && cd client && npm install && npm run build",
+  "start": "node server.js"
 }
