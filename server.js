@@ -5,49 +5,38 @@ const cors = require('cors');
 
 const app = express();
 
-// ✅ Connect to MongoDB
+// Connect DB
 if (!process.env.MONGO_URI) {
-    console.error('❌ Error: MONGO_URI is not defined in environment variables');
+    console.error('❌ MONGO_URI missing');
     process.exit(1);
 }
 connectDB(process.env.MONGO_URI);
 
-// ✅ CORS Middleware
+// CORS (allow your Vercel app + local dev)
 const allowedOrigins = [
-    "http://localhost:3000",                // local frontend
-    "https://devorbit-frontend.vercel.app"  // Vercel frontend
+    'http://localhost:3000',
+    'https://devorbit-frontend.vercel.app', // <-- your Vercel domain (adjust if different)
 ];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 
-app.use(
-    cors({
-        origin: allowedOrigins,
-        credentials: true,
-    })
-);
+// Body parser
+app.use(express.json());
 
-// ✅ Body Parser Middleware
-app.use(express.json({ extended: false }));
+// Health check (for quick testing)
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
 
-// ✅ API Routes
+// API routes
 app.use('/api/users', require('./routes/API/users'));
 app.use('/api/auth', require('./routes/API/auth'));
 app.use('/api/profile', require('./routes/API/profile'));
-app.use('/api/post', require('./routes/API/post'));
+app.use('/api/post', require('./routes/API/post')); // <-- see Step 4 about "post" vs "posts"
 
-// ⚠️ IMPORTANT: Vercel serves frontend, Railway serves ONLY backend
-
-// ✅ Start Server
+// Start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
-// ✅ Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-    console.error(`❌ Unhandled rejection: ${err.message}`);
-    process.exit(1);
-});
-
-// ✅ Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-    console.error(`❌ Uncaught exception: ${err.message}`);
-    process.exit(1);
-});
+// Safety
+process.on('unhandledRejection', (err) => { console.error(err); process.exit(1); });
+process.on('uncaughtException', (err) => { console.error(err); process.exit(1); });
