@@ -1,42 +1,38 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');   // 👈 add this
 const connectDB = require('./config/db');
-const cors = require('cors');
 
 const app = express();
 
-// Connect DB
+// ✅ Allow CORS
+app.use(
+    cors({
+        origin: [
+            "http://localhost:3000",                  // local dev
+            "https://dev-orbit-frontend.vercel.app"   // your Vercel frontend
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        allowedHeaders: ["Content-Type", "x-auth-token"]
+    })
+);
+
+// Connect to MongoDB
 if (!process.env.MONGO_URI) {
-    console.error('❌ MONGO_URI missing');
+    console.error('Error: MONGO_URI is not defined in environment variables');
     process.exit(1);
 }
 connectDB(process.env.MONGO_URI);
 
-// CORS (allow your Vercel app + local dev)
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://devorbit-frontend.vercel.app', // <-- your Vercel domain (adjust if different)
-];
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+// Middleware
+app.use(express.json({ extended: false }));
 
-// Body parser
-app.use(express.json());
-
-// Health check (for quick testing)
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() });
-});
-
-// API routes
+// API Routes
 app.use('/api/users', require('./routes/API/users'));
 app.use('/api/auth', require('./routes/API/auth'));
 app.use('/api/profile', require('./routes/API/profile'));
-app.use('/api/post', require('./routes/API/post')); // <-- see Step 4 about "post" vs "posts"
+app.use('/api/post', require('./routes/API/post'));
 
-// Start
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-// Safety
-process.on('unhandledRejection', (err) => { console.error(err); process.exit(1); });
-process.on('uncaughtException', (err) => { console.error(err); process.exit(1); });
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
