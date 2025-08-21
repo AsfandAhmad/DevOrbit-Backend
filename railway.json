@@ -1,8 +1,0 @@
-{
-  "build": "npm install && cd client && npm install && npm run build",
-  "start": "node server.js",
-  "env": {
-    "NODE_ENV": "production",
-    "MONGO_URI": "mongodb+srv://Asfand:Asfand10@cluster0.fqsgwpx.mongodb.net/"
-  }
-}
