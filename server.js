@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
-const path = require('path');
 
 const app = express();
 
@@ -21,14 +20,8 @@ app.use('/api/auth', require('./routes/API/auth'));
 app.use('/api/profile', require('./routes/API/profile'));
 app.use('/api/post', require('./routes/API/post'));
 
-// Serve React frontend in production
-if (process.env.NODE_ENV === 'production') {
-    const buildPath = path.join(__dirname, 'client', 'build');
-    app.use(express.static(buildPath));
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(buildPath, 'index.html'));
-    });
-}
+// ⚠️ IMPORTANT: Do NOT serve React from backend.
+// Vercel is serving your frontend, Railway only serves API.
 
 // Start server
 const PORT = process.env.PORT || 5000;
@@ -39,3 +32,6 @@ process.on('unhandledRejection', (err) => {
     console.error(`Unhandled rejection: ${err.message}`);
     process.exit(1);
 });
+
+///
+// Handle uncaught exceptions
